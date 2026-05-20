@@ -1,0 +1,25 @@
+{
+  "name": "plot_optimized",
+  "steps": [
+    {
+      "id": "line_merge",
+      "enabled": true,
+      "options": { "tolerance_mm": 0.05, "allow_reverse": true }
+    },
+    {
+      "id": "line_sort",
+      "enabled": true,
+      "options": { "allow_reverse": true, "two_opt": false, "passes": 1 }
+    },
+    {
+      "id": "squiggles",
+      "enabled": false,
+      "options": { "amplitude_mm": 0.5, "period_mm": 3.0, "quantization_mm": 0.05, "seed": 0 }
+    },
+    {
+      "id": "filter",
+      "enabled": false,
+      "options": { "min_length_mm": 0.5 }
+    }
+  ]
+}
