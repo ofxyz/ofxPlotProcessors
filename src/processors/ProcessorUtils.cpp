@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <string>
 
 namespace plotproc {
 
@@ -197,6 +198,104 @@ bool isPathClosed(const ofPolyline& pl, float toleranceMm) {
 	const auto& a = pl.getVertices().front();
 	const auto& b = pl.getVertices().back();
 	return glm::length(glm::vec2(b.x - a.x, b.y - a.y)) <= toleranceMm;
+}
+
+ofRectangle boundsForPathIndices(const StrokeDocument& doc, const std::vector<size_t>& indices) {
+	ofRectangle r;
+	if (indices.empty()) return doc.bounds;
+	bool first = true;
+	for (size_t i : indices) {
+		if (i >= doc.paths.size()) continue;
+		for (const auto& v : doc.paths[i].getVertices()) {
+			if (first) {
+				r.set(v.x, v.y, 0, 0);
+				first = false;
+			} else {
+				r.growToInclude(v.x, v.y);
+			}
+		}
+	}
+	return r;
+}
+
+bool layerMatchesLayerFilter(int layerId, const ofJson& options) {
+	if (!options.contains("layer_ids") || !options["layer_ids"].is_array()) return true;
+	const auto& ids = options["layer_ids"];
+	if (ids.empty()) return true;
+	for (const auto& id : ids) {
+		if (id.is_number_integer() && id.get<int>() == layerId) return true;
+	}
+	return false;
+}
+
+bool pathMatchesLayerFilter(const StrokeMeta& meta, const ofJson& options) {
+	return layerMatchesLayerFilter(meta.layerId, options);
+}
+
+glm::vec2 resolveTransformOrigin(const StrokeDocument& doc, const ofJson& options) {
+	doc.syncMetaSize();
+	std::vector<size_t> affected;
+	for (size_t i = 0; i < doc.paths.size(); ++i) {
+		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;
+		if (doc.paths[i].size() > 0) affected.push_back(i);
+	}
+	if (options.contains("origin_x_mm") && options.contains("origin_y_mm")) {
+		return {options.value("origin_x_mm", 0.0f), options.value("origin_y_mm", 0.0f)};
+	}
+	const ofRectangle r = boundsForPathIndices(doc, affected);
+	if (r.width <= 0 && r.height <= 0) return {r.x, r.y};
+	return {r.x + r.width * 0.5f, r.y + r.height * 0.5f};
+}
+
+void scaleVerticesAtOrigin(ofPolyline& pl, const glm::vec2& origin, float sx, float sy) {
+	for (auto& v : pl.getVertices()) {
+		v.x = origin.x + sx * (v.x - origin.x);
+		v.y = origin.y + sy * (v.y - origin.y);
+	}
+}
+
+void rotateVerticesClockwise(ofPolyline& pl, const glm::vec2& origin, float angleDeg) {
+	const float rad = angleDeg * static_cast<float>(M_PI) / 180.f;
+	const float c = std::cos(rad);
+	const float s = std::sin(rad);
+	for (auto& v : pl.getVertices()) {
+		const float dx = v.x - origin.x;
+		const float dy = v.y - origin.y;
+		v.x = origin.x + c * dx - s * dy;
+		v.y = origin.y + s * dx + c * dy;
+	}
+}
+
+void skewVerticesAtOrigin(ofPolyline& pl, const glm::vec2& origin, float skewXDeg, float skewYDeg) {
+	const float tx = std::tan(skewXDeg * static_cast<float>(M_PI) / 180.f);
+	const float ty = std::tan(skewYDeg * static_cast<float>(M_PI) / 180.f);
+	for (auto& v : pl.getVertices()) {
+		const float dx = v.x - origin.x;
+		const float dy = v.y - origin.y;
+		v.x = origin.x + dx + tx * dy;
+		v.y = origin.y + dy + ty * dx;
+	}
+}
+
+bool pagePresetSizeMm(const std::string& preset, float& widthMm, float& heightMm) {
+	static const std::map<std::string, glm::vec2> kPresets = {
+		{"a6", {105.f, 148.f}},
+		{"a5", {148.f, 210.f}},
+		{"a4", {210.f, 297.f}},
+		{"a3", {297.f, 420.f}},
+		{"a2", {420.f, 594.f}},
+		{"a1", {594.f, 841.f}},
+		{"a0", {841.f, 1189.f}},
+		{"letter", {215.9f, 279.4f}},
+		{"legal", {215.9f, 355.6f}},
+		{"executive", {184.15f, 266.7f}},
+		{"tabloid", {279.4f, 431.8f}},
+	};
+	auto it = kPresets.find(preset);
+	if (it == kPresets.end()) return false;
+	widthMm = it->second.x;
+	heightMm = it->second.y;
+	return true;
 }
 
 } // namespace plotproc

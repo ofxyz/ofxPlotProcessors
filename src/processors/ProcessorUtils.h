@@ -31,4 +31,21 @@ std::vector<size_t> pathIndicesForLayer(const StrokeDocument& doc, int layerId);
 
 bool isPathClosed(const ofPolyline& pl, float toleranceMm);
 
+/// Bounds over path indices (empty indices → document bounds).
+ofRectangle boundsForPathIndices(const StrokeDocument& doc, const std::vector<size_t>& indices);
+
+/// If @p options contains non-empty ``layer_ids`` array, only those layers are affected.
+bool pathMatchesLayerFilter(const StrokeMeta& meta, const ofJson& options);
+bool layerMatchesLayerFilter(int layerId, const ofJson& options);
+
+/// vpype-style origin: bbox center of affected paths unless ``origin_x_mm`` / ``origin_y_mm`` set.
+glm::vec2 resolveTransformOrigin(const StrokeDocument& doc, const ofJson& options);
+
+void scaleVerticesAtOrigin(ofPolyline& pl, const glm::vec2& origin, float sx, float sy);
+void rotateVerticesClockwise(ofPolyline& pl, const glm::vec2& origin, float angleDeg);
+void skewVerticesAtOrigin(ofPolyline& pl, const glm::vec2& origin, float skewXDeg, float skewYDeg);
+
+/// vpype paper presets (mm). Returns false if preset unknown.
+bool pagePresetSizeMm(const std::string& preset, float& widthMm, float& heightMm);
+
 } // namespace plotproc

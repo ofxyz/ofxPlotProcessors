@@ -11,6 +11,17 @@
 #include "processors/SnapProcessor.h"
 #include "processors/TranslateProcessor.h"
 #include "processors/CropProcessor.h"
+#include "processors/ScaleProcessor.h"
+#include "processors/ScaleToProcessor.h"
+#include "processors/RotateProcessor.h"
+#include "processors/SkewProcessor.h"
+#include "processors/TrimProcessor.h"
+#include "processors/LayoutProcessor.h"
+#include "processors/CircleCropProcessor.h"
+#include "processors/LineShuffleProcessor.h"
+#include "processors/SplitDistProcessor.h"
+#include "processors/PageRotateProcessor.h"
+#include "processors/TextProcessor.h"
 
 namespace plotproc {
 
@@ -26,6 +37,17 @@ ProcessorRegistry::ProcessorRegistry() {
 	registerProcessor(std::make_unique<MultipassProcessor>());
 	registerProcessor(std::make_unique<SnapProcessor>());
 	registerProcessor(std::make_unique<TranslateProcessor>());
+	registerProcessor(std::make_unique<ScaleProcessor>());
+	registerProcessor(std::make_unique<ScaleToProcessor>());
+	registerProcessor(std::make_unique<RotateProcessor>());
+	registerProcessor(std::make_unique<SkewProcessor>());
+	registerProcessor(std::make_unique<TrimProcessor>());
+	registerProcessor(std::make_unique<LayoutProcessor>());
+	registerProcessor(std::make_unique<CircleCropProcessor>());
+	registerProcessor(std::make_unique<LineShuffleProcessor>());
+	registerProcessor(std::make_unique<SplitDistProcessor>());
+	registerProcessor(std::make_unique<PageRotateProcessor>());
+	registerProcessor(std::make_unique<TextProcessor>());
 	registerProcessor(std::make_unique<CropProcessor>());
 }
 
