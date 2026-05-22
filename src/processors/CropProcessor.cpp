@@ -2,6 +2,8 @@
 #include "ClipUtils.h"
 #include "../PlotMetrics.h"
 
+namespace plotproc {
+
 ofJson CropProcessor::defaultOptions() const {
 	return {
 		{"x_mm", 0.0},

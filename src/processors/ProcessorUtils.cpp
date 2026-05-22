@@ -233,7 +233,6 @@ bool pathMatchesLayerFilter(const StrokeMeta& meta, const ofJson& options) {
 }
 
 glm::vec2 resolveTransformOrigin(const StrokeDocument& doc, const ofJson& options) {
-	doc.syncMetaSize();
 	std::vector<size_t> affected;
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;

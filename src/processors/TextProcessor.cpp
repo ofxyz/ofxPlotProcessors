@@ -7,14 +7,6 @@ namespace plotproc {
 
 namespace {
 
-ofPolyline pathToPolyline(const ofPath& path) {
-	ofPolyline pl;
-	for (const auto& v : path.getOutline()) {
-		pl.addVertex(v.x, v.y, v.z);
-	}
-	return pl;
-}
-
 float textAlignOffsetX(const std::vector<ofPolyline>& lines, const std::string& align) {
 	if (lines.empty() || align == "left") return 0.f;
 	float minX = 1e9f, maxX = -1e9f;
@@ -79,8 +71,9 @@ void TextProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 
 	std::vector<ofPolyline> generated;
 	for (const auto& path : font.getStringAsPoints(text, false, false)) {
-		auto pl = pathToPolyline(path);
-		if (pl.size() >= 2) generated.push_back(std::move(pl));
+		for (const auto& outline : path.getOutline()) {
+			if (outline.size() >= 2) generated.push_back(outline);
+		}
 	}
 
 	const float alignDx = textAlignOffsetX(generated, align);
