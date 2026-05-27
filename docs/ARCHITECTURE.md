@@ -3,20 +3,24 @@
 ## Role in the stack
 
 ```
-ofxPlotFinders   →  raster / image  →  strokes (scratch polylines → ofPath in plotter)
-ofxPlotter       →  authoring, layers, export
-ofxPlotProcessors →  optimize polylines before G-code (this addon)
+ofxPlotFinders   →  raster / image  →  strokes (ofPath in plotter layers)
+ofxPlotter       →  authoring, layers, export (ImageToPath::toStrokeDocument)
+ofxPlotProcessors →  optimize paths before G-code (this addon)
 ```
 
-**Canonical geometry in the app** is `ofPath` (one stroke per path). Processors work on **`ofPolyline`** at export/processing boundaries only.
+**Canonical geometry** in the pipeline is **`ofPath`** — one pen-down stroke per path, with bezier curves preserved where possible.
+
+Affine processors (scale, rotate, translate, skew, layout) transform control points directly. Vertex-level processors (simplify, snap, clip, squiggles) tessellate internally when needed, then rebuild as `lineTo` paths.
 
 ## Core types
 
 ### `StrokeDocument`
 
-- `paths` — one `ofPolyline` per pen-down stroke
+- `paths` — one `ofPath` per pen-down stroke
 - `meta` — parallel `StrokeMeta` (closed, `allowReverse`, `locked`, `layerId`, color, …)
-- `bounds` — cached AABB; call `rebuildBounds()` after edits
+- `bounds` — cached AABB from path commands; call `rebuildBounds()` after edits
+
+Helper accessors: `pathStart(index)`, `pathEnd(index)`, `pathLengthMM(index)` (tessellated length for metrics).
 
 ### `IPlotProcessor`
 
@@ -44,9 +48,11 @@ Ordered list of `{ processorId, enabled, options }`. Methods:
 
 `pathCount`, `vertexCount`, `drawLengthMM`, `travelLengthMM` — used for “travel saved” UI.
 
+`vertexCount` and draw length are derived from tessellated outlines (for consistent metrics across curved paths).
+
 ### `LineIndex`
 
-Uniform-grid spatial index for endpoint merge/sort.
+Uniform-grid spatial index for path endpoint merge/sort (`pathStartPt` / `pathEndPt`).
 
 ## Layer handling
 

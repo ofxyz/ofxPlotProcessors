@@ -1,6 +1,6 @@
 # ofxPlotProcessors docs
 
-Native C++ stroke pipeline for pen plotters. Use these guides from **ofxPlotter** or any addon that depends on this library.
+Native C++ stroke pipeline for pen plotters. Operates on **`ofPath`** strokes (curves preserved where possible). Use these guides from **ofxPlotter** or any addon that depends on this library.
 
 | Doc | Contents |
 |-----|----------|

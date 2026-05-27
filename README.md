@@ -1,6 +1,6 @@
 # ofxPlotProcessors
 
-Composable **stroke pipeline** for pen plotters: merge, sort, filter, transform, layout, and clip on `ofPolyline` paths before G-code export.
+Composable **stroke pipeline** for pen plotters: merge, sort, filter, transform, layout, and clip on `ofPath` strokes before G-code export.
 
 Works with **[ofxPlotFinders](https://github.com/ofxyz/ofxPlotFinders)** (image → strokes) and **ofxPlotter** (ECS, UI, export).
 

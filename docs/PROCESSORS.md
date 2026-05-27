@@ -1,6 +1,8 @@
 # Processors
 
-All processors mutate a `StrokeDocument` in place. Options are JSON; units are **millimetres** unless noted.
+All processors mutate a `StrokeDocument` in place. Each stroke is an **`ofPath`**. Options are JSON; units are **millimetres** unless noted.
+
+**Curve preservation:** scale, rotate, translate, skew, and merge (forward joins) keep bezier commands. Simplify, snap, clip, squiggles, and split tessellate to polylines internally.
 
 Common option on transforms and crops:
 
@@ -49,7 +51,7 @@ Removes strokes by length or open/closed.
 
 ### `simplify`
 
-Reduces vertices via `ofPolyline::simplify`.
+Reduces vertices by tessellating each path, running `ofPolyline::simplify`, then rebuilding as line segments.
 
 | Option | Default |
 |--------|---------|
@@ -112,7 +114,7 @@ Snaps vertices to a grid.
 | Option | Default |
 |--------|---------|
 | `reverse_order` | `false` — reverse stroke list |
-| `flip_lines` | `false` — reverse each polyline |
+| `flip_lines` | `false` — reverse each path’s draw direction |
 
 ---
 
