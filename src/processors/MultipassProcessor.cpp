@@ -16,24 +16,26 @@ void MultipassProcessor::process(StrokeDocument& doc, const ofJson& options, Pro
 	if (out) before = PlotMetricsUtil::compute(doc);
 
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
-		const ofPolyline& line = doc.paths[i];
+		const ofPolyline line = pathToPolyline(doc.paths[i]);
 		if (line.size() < 2) continue;
 
-		ofPolyline combined = line;
+		ofPath combined = polylineToPath(line);
 		for (int pass = 0; pass < count - 1; ++pass) {
 			if (pass % 2 == 0) {
+				// Reversed pass
 				ofPolyline rev;
 				const auto& verts = line.getVertices();
 				for (int vi = (int)verts.size() - 2; vi >= 0; --vi) {
 					rev.addVertex(verts[vi]);
 				}
-				appendPolylineJoin(combined, rev, false);
-			} else {
-				ofPolyline tail;
-				for (size_t vi = 1; vi < line.size(); ++vi) {
-					tail.addVertex(line[vi]);
+				for (size_t vi = 1; vi < rev.size(); ++vi) {
+					combined.lineTo(rev[vi]);
 				}
-				appendPolylineJoin(combined, tail, false);
+			} else {
+				// Forward pass (skip first vertex)
+				for (size_t vi = 1; vi < line.size(); ++vi) {
+					combined.lineTo(line[vi]);
+				}
 			}
 		}
 		doc.paths[i] = combined;

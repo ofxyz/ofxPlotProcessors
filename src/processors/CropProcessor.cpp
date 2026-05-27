@@ -1,5 +1,6 @@
 #include "CropProcessor.h"
 #include "ClipUtils.h"
+#include "ProcessorUtils.h"
 #include "../PlotMetrics.h"
 
 namespace plotproc {
@@ -23,13 +24,14 @@ void CropProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 	if (out) before = PlotMetricsUtil::compute(doc);
 
 	doc.syncMetaSize();
-	std::vector<ofPolyline> newPaths;
+	std::vector<ofPath> newPaths;
 	std::vector<StrokeMeta> newMeta;
 
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
-		auto parts = cropPolylineToRect(doc.paths[i], x, y, w, h);
+		const ofPolyline pl = pathToPolyline(doc.paths[i]);
+		auto parts = cropPolylineToRect(pl, x, y, w, h);
 		for (auto& p : parts) {
-			newPaths.push_back(std::move(p));
+			newPaths.push_back(polylineToPath(p));
 			newMeta.push_back(doc.meta[i]);
 		}
 	}

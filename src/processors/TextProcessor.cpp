@@ -1,4 +1,5 @@
 #include "TextProcessor.h"
+#include "ProcessorUtils.h"
 #include "../PlotMetrics.h"
 #include "ofTrueTypeFont.h"
 #include <algorithm>
@@ -92,7 +93,7 @@ void TextProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 	for (auto& pl : generated) {
 		StrokeMeta meta;
 		meta.layerId = layerId;
-		doc.paths.push_back(std::move(pl));
+		doc.paths.push_back(polylineToPath(pl));
 		doc.meta.push_back(meta);
 	}
 	doc.syncMetaSize();

@@ -83,8 +83,8 @@ void LayoutProcessor::process(StrokeDocument& doc, const ofJson& options, Proces
 	}
 
 	const glm::vec2 origin = {content.x + content.width * 0.5f, content.y + content.height * 0.5f};
-	for (auto& pl : doc.paths) {
-		scaleVerticesAtOrigin(pl, origin, sx, sy);
+	for (auto& p : doc.paths) {
+		scalePathAtOrigin(p, origin, sx, sy);
 	}
 	doc.rebuildBounds();
 
@@ -93,11 +93,10 @@ void LayoutProcessor::process(StrokeDocument& doc, const ofJson& options, Proces
 	const float ty = alignOffset(doc.bounds.y, doc.bounds.y + doc.bounds.height,
 	                           margin, margin + innerH, valign);
 
-	for (auto& pl : doc.paths) {
-		for (auto& v : pl.getVertices()) {
-			v.x += tx;
-			v.y += ty;
-		}
+	for (auto& p : doc.paths) {
+		transformPathInPlace(p, [tx, ty](const glm::vec2& v) {
+			return glm::vec2{v.x + tx, v.y + ty};
+		});
 	}
 	doc.rebuildBounds();
 

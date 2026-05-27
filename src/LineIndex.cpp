@@ -1,4 +1,5 @@
 #include "LineIndex.h"
+#include "processors/ProcessorUtils.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -7,10 +8,9 @@ namespace plotproc {
 
 namespace {
 
-glm::vec2 pathPoint(const ofPolyline& pl, bool atEnd) {
-	if (pl.size() == 0) return {};
-	const auto& v = atEnd ? pl.getVertices().back() : pl.getVertices().front();
-	return {v.x, v.y};
+glm::vec2 pathPoint(const std::vector<ofPath>& paths, size_t idx, bool atEnd) {
+	if (idx >= paths.size()) return {};
+	return atEnd ? pathEndPt(paths[idx]) : pathStartPt(paths[idx]);
 }
 
 float dist2(const glm::vec2& a, const glm::vec2& b) {
@@ -19,7 +19,7 @@ float dist2(const glm::vec2& a, const glm::vec2& b) {
 
 } // namespace
 
-LineIndex::LineIndex(const std::vector<ofPolyline>& paths,
+LineIndex::LineIndex(const std::vector<ofPath>& paths,
                      const std::vector<size_t>& indices,
                      bool reverse)
 	: m_paths(&paths)
@@ -32,15 +32,17 @@ LineIndex::LineIndex(const std::vector<ofPolyline>& paths,
 
 	m_available.assign(paths.size(), false);
 	for (size_t i : idxs) {
-		if (i < paths.size() && paths[i].size() > 0)
+		if (i < paths.size() && !pathIsEmpty(paths[i]))
 			m_available[i] = true;
 	}
 
 	float maxSpan = 1.f;
 	for (size_t i = 0; i < paths.size(); ++i) {
 		if (!m_available[i]) continue;
-		for (const auto& v : paths[i].getVertices()) {
-			maxSpan = std::max(maxSpan, std::max(std::abs(v.x), std::abs(v.y)));
+		// Use command points to compute span (fast, no tessellation)
+		for (const auto& cmd : paths[i].getCommands()) {
+			maxSpan = std::max(maxSpan, std::abs(cmd.to.x));
+			maxSpan = std::max(maxSpan, std::abs(cmd.to.y));
 		}
 	}
 	m_cellSize = std::max(0.5f, maxSpan / 128.f);
@@ -54,8 +56,7 @@ void LineIndex::buildGrid(float cellSize) {
 
 	for (size_t pi = 0; pi < m_paths->size(); ++pi) {
 		if (!m_available[pi]) continue;
-		const auto& pl = (*m_paths)[pi];
-		if (pl.size() == 0) continue;
+		if (pathIsEmpty((*m_paths)[pi])) continue;
 		insertEntry(pi, false);
 		if (m_reverse) insertEntry(pi, true);
 	}
@@ -66,7 +67,7 @@ uint64_t LineIndex::cellKey(int cx, int cy) const {
 }
 
 void LineIndex::insertEntry(size_t pathIndex, bool isEnd) {
-	const glm::vec2 p = pathPoint((*m_paths)[pathIndex], isEnd);
+	const glm::vec2 p = pathPoint(*m_paths, pathIndex, isEnd);
 	const int cx = (int)std::floor(p.x / m_cellSize);
 	const int cy = (int)std::floor(p.y / m_cellSize);
 	const size_t ei = m_entries.size();
@@ -84,10 +85,10 @@ bool LineIndex::pop(size_t pathIndex) {
 	return true;
 }
 
-bool LineIndex::popFront(size_t& pathIndex, ofPolyline& out) {
+bool LineIndex::popFront(size_t& pathIndex, ofPath& out) {
 	for (size_t i = 0; i < m_available.size(); ++i) {
 		if (!m_available[i]) continue;
-		if ((*m_paths)[i].size() == 0) continue;
+		if (pathIsEmpty((*m_paths)[i])) continue;
 		pathIndex = i;
 		m_available[i] = false;
 		out = (*m_paths)[i];
@@ -108,7 +109,7 @@ bool LineIndex::findNearestWithin(const glm::vec2& p,
 	const float maxDist2 = maxDist * maxDist;
 	float best = maxDist2;
 	bool found = false;
-	pathIndex = 0;
+	pathIndex  = 0;
 	reverseEnd = false;
 
 	const int cx0 = (int)std::floor(p.x / m_cellSize);
@@ -124,19 +125,21 @@ bool LineIndex::findNearestWithin(const glm::vec2& p,
 				for (size_t ei : it->second) {
 					const Entry& e = m_entries[ei];
 					if (!m_available[e.pathIndex]) continue;
-					const glm::vec2 q = pathPoint((*m_paths)[e.pathIndex], e.isEnd);
+					const glm::vec2 q = pathPoint(*m_paths, e.pathIndex, e.isEnd);
 					const float d2 = dist2(p, q);
 					if (d2 <= best) {
-						best = d2;
+						best      = d2;
 						pathIndex = e.pathIndex;
 						reverseEnd = e.isEnd;
-						found = true;
+						found     = true;
 					}
 				}
 			}
 		}
-		if (found && ring > 0 && best < (float)((ring - 1) * m_cellSize) * (float)((ring - 1) * m_cellSize))
+		if (found && ring > 0 &&
+		    best < (float)((ring - 1) * m_cellSize) * (float)((ring - 1) * m_cellSize)) {
 			break;
+		}
 	}
 	return found;
 }

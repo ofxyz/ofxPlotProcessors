@@ -24,14 +24,14 @@ void LineMergeProcessor::process(StrokeDocument& doc, const ofJson& options, Pro
 	rebuilt.meta.reserve(doc.meta.size());
 
 	for (int layerId : layerIdsInOrder(doc)) {
-		std::vector<ofPolyline> mergeable;
+		std::vector<ofPath> mergeable;
 		std::vector<StrokeMeta> mergeMeta;
-		std::vector<ofPolyline> lockedPaths;
+		std::vector<ofPath> lockedPaths;
 		std::vector<StrokeMeta> lockedMeta;
 
 		for (size_t i = 0; i < doc.paths.size(); ++i) {
 			if (doc.meta[i].layerId != layerId) continue;
-			if (doc.meta[i].locked || doc.paths[i].size() < 2) {
+			if (doc.meta[i].locked || pathIsEmpty(doc.paths[i])) {
 				lockedPaths.push_back(doc.paths[i]);
 				lockedMeta.push_back(doc.meta[i]);
 				continue;
@@ -41,7 +41,7 @@ void LineMergeProcessor::process(StrokeDocument& doc, const ofJson& options, Pro
 		}
 
 		if (mergeable.size() >= 2) {
-			mergePolylinesVpype(mergeable, tol, allowFlip);
+			mergePathsVpype(mergeable, tol, allowFlip);
 		}
 
 		for (size_t i = 0; i < lockedPaths.size(); ++i) {

@@ -24,8 +24,8 @@ void ReverseProcessor::process(StrokeDocument& doc, const ofJson& options, Proce
 		std::reverse(doc.meta.begin(), doc.meta.end());
 	}
 	if (flipLines) {
-		for (auto& pl : doc.paths) {
-			reversePolyline(pl);
+		for (auto& p : doc.paths) {
+			reversePath(p);
 		}
 	}
 

@@ -13,9 +13,11 @@ void SimplifyProcessor::process(StrokeDocument& doc, const ofJson& options, Proc
 	PlotMetrics before;
 	if (out) before = PlotMetricsUtil::compute(doc);
 
-	for (auto& pl : doc.paths) {
+	for (auto& p : doc.paths) {
+		ofPolyline pl = pathToPolyline(p);
 		if (pl.size() >= 3) {
 			pl.simplify(tol);
+			p = polylineToPath(pl);
 		}
 	}
 	doc.rebuildBounds();

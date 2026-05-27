@@ -25,7 +25,7 @@ void SquigglesProcessor::process(StrokeDocument& doc, const ofJson& options, Pro
 	ofSeedRandom(seed);
 
 	for (size_t pi = 0; pi < doc.paths.size(); ++pi) {
-		ofPolyline resampled = resamplePolyline(doc.paths[pi], quantization);
+		ofPolyline resampled = resamplePolyline(pathToPolyline(doc.paths[pi]), quantization);
 		ofPolyline wobbled;
 		wobbled.setClosed(resampled.isClosed());
 		for (const auto& v : resampled.getVertices()) {
@@ -33,7 +33,7 @@ void SquigglesProcessor::process(StrokeDocument& doc, const ofJson& options, Pro
 			const float ny = ofNoise(v.x / period + 31.7f, v.y / period + 91.2f, seed * 0.23f) * 2.f - 1.f;
 			wobbled.addVertex(v.x + nx * amplitude, v.y + ny * amplitude, v.z);
 		}
-		doc.paths[pi] = wobbled;
+		doc.paths[pi] = polylineToPath(wobbled);
 	}
 
 	doc.rebuildBounds();

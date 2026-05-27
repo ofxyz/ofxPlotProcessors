@@ -17,8 +17,8 @@ ofJson LineSortProcessor::defaultOptions() const {
 
 namespace {
 
-void twoOptPass(std::vector<ofPolyline>& lines, int passes) {
-	if (lines.size() < 3) return;
+void twoOptPass(std::vector<ofPath>& paths, int passes) {
+	if (paths.size() < 3) return;
 
 	auto endpointCost = [](const glm::vec2& from, const glm::vec2& to) {
 		return glm::length(to - from);
@@ -26,19 +26,15 @@ void twoOptPass(std::vector<ofPolyline>& lines, int passes) {
 
 	for (int pass = 0; pass < passes; ++pass) {
 		bool improved = false;
-		for (size_t i = 1; i + 1 < lines.size(); ++i) {
-			const glm::vec2 endA = {lines[i - 1].getVertices().back().x,
-			                        lines[i - 1].getVertices().back().y};
-			const glm::vec2 startB = {lines[i].getVertices().front().x,
-			                          lines[i].getVertices().front().y};
-			const glm::vec2 endB = {lines[i].getVertices().back().x,
-			                        lines[i].getVertices().back().y};
-			const glm::vec2 startC = {lines[i + 1].getVertices().front().x,
-			                          lines[i + 1].getVertices().front().y};
+		for (size_t i = 1; i + 1 < paths.size(); ++i) {
+			const glm::vec2 endA   = pathEndPt(paths[i - 1]);
+			const glm::vec2 startB = pathStartPt(paths[i]);
+			const glm::vec2 endB   = pathEndPt(paths[i]);
+			const glm::vec2 startC = pathStartPt(paths[i + 1]);
 			const float beforeCost = endpointCost(endA, startB) + endpointCost(endB, startC);
-			const float afterCost = endpointCost(endA, startC) + endpointCost(endB, startB);
+			const float afterCost  = endpointCost(endA, startC) + endpointCost(endB, startB);
 			if (afterCost + 1e-4f < beforeCost) {
-				std::swap(lines[i], lines[i + 1]);
+				std::swap(paths[i], paths[i + 1]);
 				improved = true;
 			}
 		}
@@ -62,9 +58,9 @@ void LineSortProcessor::process(StrokeDocument& doc, const ofJson& options, Proc
 	rebuilt.meta.reserve(doc.meta.size());
 
 	for (int layerId : layerIdsInOrder(doc)) {
-		std::vector<ofPolyline> sortable;
+		std::vector<ofPath> sortable;
 		std::vector<StrokeMeta> sortMeta;
-		std::vector<ofPolyline> lockedPaths;
+		std::vector<ofPath> lockedPaths;
 		std::vector<StrokeMeta> lockedMeta;
 
 		for (size_t i = 0; i < doc.paths.size(); ++i) {
@@ -74,14 +70,14 @@ void LineSortProcessor::process(StrokeDocument& doc, const ofJson& options, Proc
 				lockedMeta.push_back(doc.meta[i]);
 				continue;
 			}
-			if (doc.paths[i].size() >= 2) {
+			if (!pathIsEmpty(doc.paths[i])) {
 				sortable.push_back(doc.paths[i]);
 				sortMeta.push_back(doc.meta[i]);
 			}
 		}
 
 		if (sortable.size() >= 2) {
-			sortPolylinesGreedyVpype(sortable, allowFlip);
+			sortPathsGreedyVpype(sortable, allowFlip);
 			if (twoOpt) twoOptPass(sortable, passes);
 		}
 

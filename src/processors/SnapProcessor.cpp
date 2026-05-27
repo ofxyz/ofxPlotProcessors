@@ -1,4 +1,5 @@
 #include "SnapProcessor.h"
+#include "ProcessorUtils.h"
 #include "../PlotMetrics.h"
 #include <cmath>
 
@@ -15,7 +16,7 @@ void SnapProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 	if (out) before = PlotMetricsUtil::compute(doc);
 
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
-		auto& pl = doc.paths[i];
+		ofPolyline pl = pathToPolyline(doc.paths[i]);
 		if (pl.size() < 2) continue;
 
 		ofPolyline snapped;
@@ -30,7 +31,7 @@ void SnapProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 			snapped.addVertex(sx, sy, v.z);
 		}
 		if (snapped.size() >= 2) {
-			pl = snapped;
+			doc.paths[i] = polylineToPath(snapped);
 		}
 	}
 

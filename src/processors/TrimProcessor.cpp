@@ -20,7 +20,7 @@ void TrimProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 	std::vector<size_t> affected;
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;
-		if (doc.paths[i].size() > 0) affected.push_back(i);
+		if (!pathIsEmpty(doc.paths[i])) affected.push_back(i);
 	}
 
 	const ofRectangle r = boundsForPathIndices(doc, affected);
@@ -38,7 +38,7 @@ void TrimProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 	const float w = r.width - 2.f * mx;
 	const float h = r.height - 2.f * my;
 
-	std::vector<ofPolyline> newPaths;
+	std::vector<ofPath> newPaths;
 	std::vector<StrokeMeta> newMeta;
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) {
@@ -46,9 +46,10 @@ void TrimProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 			newMeta.push_back(doc.meta[i]);
 			continue;
 		}
-		auto parts = cropPolylineToRect(doc.paths[i], x, y, w, h);
+		const ofPolyline pl = pathToPolyline(doc.paths[i]);
+		auto parts = cropPolylineToRect(pl, x, y, w, h);
 		for (auto& p : parts) {
-			newPaths.push_back(std::move(p));
+			newPaths.push_back(polylineToPath(p));
 			newMeta.push_back(i < doc.meta.size() ? doc.meta[i] : StrokeMeta{});
 		}
 	}

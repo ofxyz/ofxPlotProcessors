@@ -25,7 +25,7 @@ void ScaleToProcessor::process(StrokeDocument& doc, const ofJson& options, Proce
 	std::vector<size_t> affected;
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;
-		if (doc.paths[i].size() > 0) affected.push_back(i);
+		if (!pathIsEmpty(doc.paths[i])) affected.push_back(i);
 	}
 
 	const ofRectangle r = boundsForPathIndices(doc, affected);
@@ -47,7 +47,7 @@ void ScaleToProcessor::process(StrokeDocument& doc, const ofJson& options, Proce
 
 	const glm::vec2 origin = resolveTransformOrigin(doc, options);
 	for (size_t i : affected) {
-		scaleVerticesAtOrigin(doc.paths[i], origin, sx, sy);
+		scalePathAtOrigin(doc.paths[i], origin, sx, sy);
 	}
 	doc.rebuildBounds();
 

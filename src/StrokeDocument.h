@@ -17,7 +17,7 @@ struct StrokeMeta {
 };
 
 struct StrokeDocument {
-	std::vector<ofPolyline> paths;
+	std::vector<ofPath> paths;
 	std::vector<StrokeMeta> meta;
 
 	ofRectangle bounds;

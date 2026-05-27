@@ -10,10 +10,10 @@ namespace plotproc {
 /// Spatial index for stroke endpoints — port of vpype ``LineIndex`` (scipy KDTree → uniform grid).
 class LineIndex {
 public:
-	/// @param paths  Source polylines (must outlive this index).
+	/// @param paths  Source paths (must outlive this index).
 	/// @param indices  Subset of path indices to index (empty = all paths).
 	/// @param reverse  Index line ends as well as starts (for merge / sort with flip).
-	LineIndex(const std::vector<ofPolyline>& paths,
+	LineIndex(const std::vector<ofPath>& paths,
 	          const std::vector<size_t>& indices,
 	          bool reverse = true);
 
@@ -21,7 +21,7 @@ public:
 	bool empty() const { return size() == 0; }
 
 	/// First available path index (vpype ``pop_front``).
-	bool popFront(size_t& pathIndex, ofPolyline& out);
+	bool popFront(size_t& pathIndex, ofPath& out);
 
 	/// Mark path unavailable; returns false if already removed.
 	bool pop(size_t pathIndex);
@@ -45,7 +45,7 @@ private:
 	void insertEntry(size_t pathIndex, bool isEnd);
 	uint64_t cellKey(int cx, int cy) const;
 
-	const std::vector<ofPolyline>* m_paths = nullptr;
+	const std::vector<ofPath>* m_paths = nullptr;
 	std::vector<bool> m_available;
 	bool m_reverse = true;
 	float m_cellSize = 1.f;

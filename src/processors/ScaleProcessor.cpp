@@ -19,7 +19,7 @@ void ScaleProcessor::process(StrokeDocument& doc, const ofJson& options, Process
 	const glm::vec2 origin = resolveTransformOrigin(doc, options);
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;
-		scaleVerticesAtOrigin(doc.paths[i], origin, sx, sy);
+		scalePathAtOrigin(doc.paths[i], origin, sx, sy);
 	}
 	doc.rebuildBounds();
 

@@ -24,11 +24,12 @@ void ReloopProcessor::process(StrokeDocument& doc, const ofJson& options, Proces
 
 	doc.syncMetaSize();
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
-		auto& pl = doc.paths[i];
+		ofPolyline pl = pathToPolyline(doc.paths[i]);
 		if (pl.size() < 3) continue;
-		if (!isPathClosed(pl, tol) && !doc.meta[i].closed) continue;
+		if (!isPathClosed(doc.paths[i], tol) && !doc.meta[i].closed) continue;
 
-		const int loc = dist(rng, std::uniform_int_distribution<int>::param_type(0, (int)pl.size() - 2));
+		const int loc = dist(rng, std::uniform_int_distribution<int>::param_type(
+			0, (int)pl.size() - 2));
 		glm::vec3 mid = 0.5f * (pl[0] + pl[pl.size() - 1]);
 
 		ofPolyline relooped;
@@ -39,7 +40,7 @@ void ReloopProcessor::process(StrokeDocument& doc, const ofJson& options, Proces
 		}
 		relooped.addVertex(mid);
 		relooped.setClosed(true);
-		pl = relooped;
+		doc.paths[i] = polylineToPath(relooped);
 		doc.meta[i].closed = true;
 	}
 

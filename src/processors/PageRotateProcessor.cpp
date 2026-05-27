@@ -19,7 +19,7 @@ void PageRotateProcessor::process(StrokeDocument& doc, const ofJson& options, Pr
 	const glm::vec2 origin = resolveTransformOrigin(doc, options);
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;
-		rotateVerticesClockwise(doc.paths[i], origin, angle);
+		rotatePathClockwise(doc.paths[i], origin, angle);
 	}
 	doc.rebuildBounds();
 

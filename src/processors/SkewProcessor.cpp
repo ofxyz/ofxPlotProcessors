@@ -19,7 +19,7 @@ void SkewProcessor::process(StrokeDocument& doc, const ofJson& options, Processo
 	const glm::vec2 origin = resolveTransformOrigin(doc, options);
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		if (i < doc.meta.size() && !pathMatchesLayerFilter(doc.meta[i], options)) continue;
-		skewVerticesAtOrigin(doc.paths[i], origin, skewX, skewY);
+		skewPathAtOrigin(doc.paths[i], origin, skewX, skewY);
 	}
 	doc.rebuildBounds();
 

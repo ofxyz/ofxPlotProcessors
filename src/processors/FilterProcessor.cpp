@@ -25,7 +25,7 @@ void FilterProcessor::process(StrokeDocument& doc, const ofJson& options, Proces
 	if (out) before = PlotMetricsUtil::compute(doc);
 
 	doc.syncMetaSize();
-	std::vector<ofPolyline> newPaths;
+	std::vector<ofPath> newPaths;
 	std::vector<StrokeMeta> newMeta;
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
 		const float len = doc.pathLengthMM(i);

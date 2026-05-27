@@ -20,7 +20,7 @@ void CircleCropProcessor::process(StrokeDocument& doc, const ofJson& options, Pr
 	if (out) before = PlotMetricsUtil::compute(doc);
 
 	doc.syncMetaSize();
-	std::vector<ofPolyline> newPaths;
+	std::vector<ofPath> newPaths;
 	std::vector<StrokeMeta> newMeta;
 
 	for (size_t i = 0; i < doc.paths.size(); ++i) {
@@ -29,9 +29,9 @@ void CircleCropProcessor::process(StrokeDocument& doc, const ofJson& options, Pr
 			newMeta.push_back(doc.meta[i]);
 			continue;
 		}
-		auto parts = cropPolylineToCircle(doc.paths[i], center, radius);
+		auto parts = cropPolylineToCircle(pathToPolyline(doc.paths[i]), center, radius);
 		for (auto& p : parts) {
-			newPaths.push_back(std::move(p));
+			newPaths.push_back(polylineToPath(p));
 			newMeta.push_back(i < doc.meta.size() ? doc.meta[i] : StrokeMeta{});
 		}
 	}

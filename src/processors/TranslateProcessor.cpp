@@ -14,11 +14,10 @@ void TranslateProcessor::process(StrokeDocument& doc, const ofJson& options, Pro
 	PlotMetrics before;
 	if (out) before = PlotMetricsUtil::compute(doc);
 
-	for (auto& pl : doc.paths) {
-		for (auto& v : pl.getVertices()) {
-			v.x += ox;
-			v.y += oy;
-		}
+	for (auto& p : doc.paths) {
+		transformPathInPlace(p, [ox, oy](const glm::vec2& v) {
+			return glm::vec2{v.x + ox, v.y + oy};
+		});
 	}
 	doc.rebuildBounds();
 
